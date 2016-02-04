@@ -17,30 +17,24 @@ app.get('/', function(req, resp) {
 
 // GET /todos?completed=true&q=house
 app.get('/todos', function(req, resp) {
-  var queryParams = req.query;
-  var filteredTodos = todos;
+  var query = req.query;
+  var where = {};
 
-  if (queryParams.hasOwnProperty('completed')) {
-    if (queryParams.completed === 'true') {
-      filteredTodos = _.where(filteredTodos, {
-        completed: true
-      });
-    } else if (queryParams.completed === 'false') {
-      filteredTodos = _.where(filteredTodos, {
-        completed: false
-      });
-    }
+  if (query.hasOwnProperty('completed')) {
+    where.completed = (query.completed === 'true');
   }
-
-  if (queryParams.hasOwnProperty('q') && _.isString(queryParams.q) &&
-    queryParams.q.trim().length > 0) {
-    var q = queryParams.q.trim().toLowerCase();
-    filteredTodos = _.filter(filteredTodos, function(a) {
-      return a.description.toLowerCase().indexOf(q) > -1;
-    });
+  if (query.hasOwnProperty('q') && query.q.length > 0) {
+    where.description = {
+      'like': '%' + query.q + '%'
+    };
   }
-
-  resp.json(filteredTodos);
+  db.todo.findAll({
+    where: where
+  }).then(function(todosFound) {
+    resp.json(todosFound);
+  }, function(error) {
+    resp.status(404).json(error);
+  });
 });
 
 app.get('/todos/:id', function(req, resp) {
@@ -48,12 +42,12 @@ app.get('/todos/:id', function(req, resp) {
 
   db.todo.findById(findId).then(function(matchedTodo) {
     if (matchedTodo) {
-      resp.json(matchedTodo);
+      resp.json(matchedTodo.toJSON());
     } else {
-      resp.status(400).send();
+      resp.status(404).send();
     }
   }, function(e) {
-    resp.status(404).send();
+    resp.status(500).send();
   });
   /*var matchedTodo = _.findWhere(todos, {
     id: findId
@@ -131,7 +125,11 @@ app.put('/todos/:id', function(req, resp) {
   resp.json(matchedTodo);
 });
 
-db.sequelize.sync().then(function() {
+db.sequelize.sync(
+  /*{
+    force: true
+  }*/
+).then(function() {
   app.listen(PORT, function() {
     console.log('Express listening on port ' + PORT + '!');
   });
