@@ -76,19 +76,49 @@ app.post('/todos', function(req, resp) {
 // DELETE /todos/:id
 app.delete('/todos/:id', function(req, resp) {
   var deleteId = parseInt(req.params.id, 10);
-  var matchedTodo = _.findWhere(todos, {
-    id: deleteId
+  var deletedJSON;
+
+  db.todo.findById(deleteId).then(function(matchedTodo) {
+    if (matchedTodo) {
+      deletedJSON = matchedTodo.toJSON();
+      return db.todo.destroy({
+        where: {
+          id: matchedTodo.id
+        }
+      });
+    } else {
+      return resp.status(404).json({
+        "error": "no todo found with identifier: " + deleteId
+      });
+    }
+  }).then(function(rowsDeleted) {
+    if (rowsDeleted == 0) {
+      return resp.status(404).json({
+        "error": "could not delete todo with identifier: " +
+          deleteId
+      })
+    } else {
+      console.log('Deleted ' + rowsDeleted + ' rows');
+      return resp.json(deletedJSON);
+    }
+  }).catch(function(e) {
+    return resp.status(500).send();
   });
-
-  if (typeof matchedTodo === 'undefined') {
-    return resp.status(400).json({
-      "error": "no todo found with identifier: " + deleteId
-    });
-  }
-
-  todos = _.without(todos, matchedTodo);
-  resp.json(matchedTodo);
 });
+//  var matchedTodo = db.todo.
+/*var matchedTodo = _.findWhere(todos, {
+  id: deleteId
+});
+
+if (typeof matchedTodo === 'undefined') {
+  return resp.status(400).json({
+    "error": "no todo found with identifier: " + deleteId
+  });
+}
+
+todos = _.without(todos, matchedTodo);
+resp.json(matchedTodo);*/
+//});
 
 // PUT
 app.put('/todos/:id', function(req, resp) {
