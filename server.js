@@ -162,7 +162,7 @@ app.post('/users', function(req, resp) {
 });
 
 app.post('/users/login', function(req, resp) {
-  // resp.status(200).send();
+  resp.status(200).send();
   // var body = _.pick(req.body, 'email', 'password');
   //
   // db.user.authenticate(body).then(function(user) {
