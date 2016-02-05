@@ -150,6 +150,16 @@ app.put('/todos/:id', function(req, resp) {
   });
 });
 
+app.post('/users', function(req, resp) {
+  var body = _.pick(req.body, 'email', 'password');
+
+  db.user.create(body).then(function(user) {
+    resp.json(user.toJSON());
+  }, function(e) {
+    resp.status(400).json(e);
+  });
+});
+
 db.sequelize.sync(
   /*{
     force: true
