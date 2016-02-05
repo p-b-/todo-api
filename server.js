@@ -165,10 +165,9 @@ app.post('/users/login', function(req, resp) {
   var body = _.pick(req.body, 'email', 'password');
 
   db.user.authenticate(body).then(function(user) {
-    resp.status(200).send();
-    //    resp.json.toPublicJSON(user);
+    resp.json.toPublicJSON(user);
   }, function(e) {
-    //  resp.status(401).send();
+    resp.status(401).send();
   });
 
 });
