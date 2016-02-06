@@ -20,7 +20,9 @@ app.get('/', function(req, resp) {
 // GET /todos?completed=true&q=house
 app.get('/todos', middleware.requireAuthentication, function(req, resp) {
   var query = req.query;
-  var where = {};
+  var where = {
+    userId: req.user.get('id')
+  };
 
   if (query.hasOwnProperty('completed')) {
     where.completed = (query.completed === 'true');
@@ -42,7 +44,12 @@ app.get('/todos', middleware.requireAuthentication, function(req, resp) {
 app.get('/todos/:id', middleware.requireAuthentication, function(req, resp) {
   var findId = parseInt(req.params.id, 10);
 
-  db.todo.findById(findId).then(function(matchedTodo) {
+  db.todo.findOne({
+    where: {
+      id: findId,
+      userId: req.user.get('id')
+    }
+  }).then(function(matchedTodo) {
     if (matchedTodo) {
       resp.json(matchedTodo.toJSON());
     } else {
@@ -81,7 +88,8 @@ app.delete('/todos/:id', middleware.requireAuthentication, function(req, resp) {
       deletedJSON = matchedTodo.toJSON();
       return db.todo.destroy({
         where: {
-          id: matchedTodo.id
+          id: matchedTodo.id,
+          userId: req.user.get('id')
         }
       });
     } else {
@@ -119,7 +127,12 @@ app.put('/todos/:id', middleware.requireAuthentication, function(req, resp) {
     attributes.description = body.description;
   }
 
-  db.todo.findById(updateId).then(function(todo) {
+  db.todo.findOne({
+    where: {
+      id: updateId,
+      userId: req.user.get('id')
+    }
+  }).then(function(todo) {
     if (todo) {
       todo.update(attributes).then(function(todo) {
         resp.json(todo.toJSON());
