@@ -1,7 +1,7 @@
 var bcrypt = require('bcrypt');
 var _ = require('underscore');
 var cryptojs = require('crypto-js');
-var jwt = require('jsonWebToken');
+var jwt = require('jsonwebtoken');
 
 module.exports = function(sequelize, DataTypes) {
   var user = sequelize.define('user', {
