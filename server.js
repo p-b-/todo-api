@@ -3,6 +3,7 @@ var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt');
 var _ = require('underscore');
 var db = require('./db.js');
+var middleware = require('./middleware.js')(db);
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -17,7 +18,7 @@ app.get('/', function(req, resp) {
 });
 
 // GET /todos?completed=true&q=house
-app.get('/todos', function(req, resp) {
+app.get('/todos', middleware.requireAuthentication, function(req, resp) {
   var query = req.query;
   var where = {};
 
@@ -38,7 +39,7 @@ app.get('/todos', function(req, resp) {
   });
 });
 
-app.get('/todos/:id', function(req, resp) {
+app.get('/todos/:id', middleware.requireAuthentication, function(req, resp) {
   var findId = parseInt(req.params.id, 10);
 
   db.todo.findById(findId).then(function(matchedTodo) {
@@ -50,20 +51,11 @@ app.get('/todos/:id', function(req, resp) {
   }, function(e) {
     resp.status(500).send();
   });
-  /*var matchedTodo = _.findWhere(todos, {
-    id: findId
-  });
-
-  if (matchedTodo) {
-    resp.json(matchedTodo);
-  } else {
-    resp.status(404).send();
-  }*/
 });
 
 // POST /todos
 
-app.post('/todos', function(req, resp) {
+app.post('/todos', middleware.requireAuthentication, function(req, resp) {
   var body = _.pick(req.body, 'description', 'completed');
 
   db.todo.create(body).then(function(todo) {
@@ -75,7 +67,7 @@ app.post('/todos', function(req, resp) {
 });
 
 // DELETE /todos/:id
-app.delete('/todos/:id', function(req, resp) {
+app.delete('/todos/:id', middleware.requireAuthentication, function(req, resp) {
   var deleteId = parseInt(req.params.id, 10);
   var deletedJSON;
 
@@ -106,23 +98,9 @@ app.delete('/todos/:id', function(req, resp) {
     return resp.status(500).send();
   });
 });
-//  var matchedTodo = db.todo.
-/*var matchedTodo = _.findWhere(todos, {
-  id: deleteId
-});
-
-if (typeof matchedTodo === 'undefined') {
-  return resp.status(400).json({
-    "error": "no todo found with identifier: " + deleteId
-  });
-}
-
-todos = _.without(todos, matchedTodo);
-resp.json(matchedTodo);*/
-//});
 
 // PUT
-app.put('/todos/:id', function(req, resp) {
+app.put('/todos/:id', middleware.requireAuthentication, function(req, resp) {
   var updateId = parseInt(req.params.id, 10);
 
   var body = _.pick(req.body, 'description', 'completed');
@@ -179,7 +157,7 @@ app.post('/users/login', function(req, resp) {
 });
 
 db.sequelize.sync({
-  force: true
+  force: false
 }).then(function() {
   app.listen(PORT, function() {
     console.log('Express listening on port ' + PORT + '!');
