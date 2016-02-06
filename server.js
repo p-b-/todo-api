@@ -165,7 +165,7 @@ app.post('/users/login', function(req, resp) {
   var body = _.pick(req.body, 'email', 'password');
 
   db.user.authenticate(body).then(function(user) {
-    resp.json.toPublicJSON(user);
+    resp.json(user.toPublicJSON());
   }, function(e) {
     resp.status(401).send();
   });

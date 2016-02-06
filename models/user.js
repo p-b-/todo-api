@@ -41,7 +41,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     classMethods: {
-      authentic: function(body) {
+      authenticate: function(body) {
         return new Promise(function(resolve, reject) {
           if (typeof body.email !== 'string' ||
             typeof body.password !== 'string') {
@@ -53,15 +53,17 @@ module.exports = function(sequelize, DataTypes) {
               email: body.email
             }
           }).then(function(user) {
-            /*if (!user || !bcrypt.compareSync(body.password,
+            if (!user || !bcrypt.compareSync(body.password,
                 user.get(
                   'password_hash'))) {
+              console.log('Failed hash');
               return reject();
             } else {
+              console.log('Succeeded hash');
               resolve(user);
-            }*/
-            resolve(body);
+            }
           }, function(e) {
+            console.log('Error: ' + e);
             reject();
           })
         });
