@@ -19,57 +19,67 @@ var Todo = sequelize.define('todo', {
   }
 });
 
-sequelize.sync({
-  force: true
-}).then(function() {
-  Todo.create({
-    description: 'Sing with Dash'
-  }).then(function(todo) {
-    console.log('Created ' + todo.description);
-    return Todo.create({
-      description: 'Play with Croc'
-    });
-  }).then(function(todo) {
-    console.log('Created ' + todo.description);
-    return Todo.findById(2);
-  }).then(function(todo) {
-    console.log('Found ' + todo.toJSON());
-  }).catch(function(e) {
-    log(e);
-  });
+var User = sequelize.define('user', {
+  email: {
+    type: Sequelize.STRING
+  }
 });
 
-/*sequelize.sync({
-  force: true
+Todo.belongsTo(User);
+User.hasMany(Todo);
+
+sequelize.sync({
+  force: false
 }).then(function() {
-  console.log('Everything is synced');
-
-  Todo.create({
-    description: 'Play with Dash',
-    completed: false
-  }).then(function(todo) {
-    return Todo.create({
-      description: 'Clean office'
-    });
-  }).then(function(todo) {
-    //return Todo.findById(1)
-    return Todo.findAll({
+  User.findById(1).then(function(user) {
+    console.log('Executing finding users todos promise');
+    user.getTodos({
       where: {
-        description: {
-          $like: '%dash%'
-        }
+        completed: false
       }
-    });
-  }).then(function(todos) {
-
-    if (todos) {
+    }).then(function(todos) {
+      console.log('Executing foreach for users todos');
       todos.forEach(function(todo) {
-        console.log(todo.toJSON());
+        console.log('Found users todo: ' + JSON.stringify(todo));
       })
-    } else {
-      console.log('no todo found!');
-    }
-  }).catch(function(e) {
-    console.log(e);
-  });
-});*/
+    })
+  }).then(function() {
+
+
+    console.log('finding by status');
+
+    /*  var findStatus = false;
+    User.findById(1).then(function(user) {
+      console.log('Executing finding users completed todos promise');
+      var where = {
+        userId: user.id,
+        completed: findStatus
+      };
+
+      Todo.findAll({
+        where: where
+      }).then(function(todos) {
+        console.log('Executing foreach for completed todos');
+        todo = undefined;
+        todos.forEach(function(todo) {
+          console.log('Todo with status: ' + findStatus +
+            ' ' +
+            JSON.stringify(todo));
+        })
+      });
+})*/
+
+  })
+
+  // User.create({
+  //   email: 'paul@example.com'
+  // }).then(function(user) {
+  //   return Todo.create({
+  //     description: 'Clean kitchen'
+  //   });
+  // }).then(function(todo) {
+  //   return User.findById(1).then(function(user) {
+  //     user.addTodo(todo);
+  //   })
+  // })
+});
